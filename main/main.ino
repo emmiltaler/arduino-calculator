@@ -6,6 +6,11 @@
 const byte ROWS = 4; // four rows
 const byte COLS = 4; // four columns
 
+String number1 = "";
+String number2 = "";
+String operation = "none";
+
+
 
 // Setup keypad 1
 
@@ -77,59 +82,121 @@ void setup()
     lcd.createChar(1, divisionCharacter);
 }
 
+
+void handleOperation(String type) {
+    if (operation != "none") {
+      // Berechnen
+
+      int num1 = number1.toInt();
+      int num2 = number2.toInt();
+      int result = 0;
+
+      if (operation == "add") {
+        result = num1 + num2;
+      }
+      else if (operation == "subtract") {
+        result = num1 - num2;
+      }
+      else if (operation == "multiply") {
+        result = num1 * num2;
+      }
+      else if (operation == "divide") {
+        result = num1 / num2;
+      }
+
+      number1 = result;
+
+      lcd.setCursor(0, 0);
+      lcd.print("                ");
+
+      lcd.setCursor(0, 0);
+      lcd.print("=" + String(number1));
+    }
+
+    operation = type;
+}
+
+
+void handleKeypad1(char key) {
+  // if the end of the line is reached
+    if (cursorPositionKeypad1 > 15)
+    {
+      Serial.println("The end of the line is reached!");
+      return;
+    }
+
+    lcd.setCursor(cursorPositionKeypad1, 1);
+
+    if (key == 'A')
+    {
+      lcd.print("+");
+      handleOperation("add");
+    }
+    else if (key == 'B')
+    {
+      lcd.print("-");
+      handleOperation("subtract");
+    }
+    else if (key == 'C')
+    {
+      lcd.write((byte)0);
+      handleOperation("multiply");
+    }
+    else if (key == 'D')
+    {
+      lcd.write((byte)1);
+      handleOperation("divide");
+    }
+    else if (key == '*')
+    {
+      cursorPositionKeypad1 -= 1;
+      lcd.setCursor(cursorPositionKeypad1, 1);
+      cursorPositionKeypad1 -= 1;
+      lcd.write(" ");
+    }
+    else if (key == '#')
+    {
+      lcd.write("=");
+    }
+    else
+    {
+      // simply print the number
+      lcd.print(key);
+
+      if (operation == "none") {
+        number1 += key;
+      }
+      else {
+        number2 += key;
+      }
+    }
+
+
+    // increment cursorPositionKeypad1 in order to print the next digit next to this one
+    cursorPositionKeypad1 += 1;
+}
+
+void handleKeypad2(char key) {
+    
+    if (key == 'A') {}
+}
+
+
+
 void loop()
 {
     // set the cursor to column 0, line 1
     // (note: line 1 is the second row, since counting begins with 0):
 
-    char customKey = keypad1.getKey();
+    char keyKeypad1 = keypad1.getKey();
+    char keyKeypad2 = keypad2.getKey();
 
-    if (customKey)
-    {
+    if (keyKeypad1) handleKeypad1(keyKeypad1);
 
-        // if the end of the line is reached
-        if (cursorPositionKeypad1 > 15)
-        {
-            Serial.println("The end of the line is reached!");
-        }
+    if (keyKeypad2) handleKeypad2(keyKeypad2);
 
-        lcd.setCursor(cursorPositionKeypad1, 1);
-
-        if (customKey == 'A')
-        {
-            Serial.println(customKey);
-            lcd.print("+");
-        }
-        else if (customKey == 'B')
-        {
-            lcd.print("-");
-        }
-        else if (customKey == 'C')
-        {
-            lcd.write((byte)0);
-        }
-        else if (customKey == 'D')
-        {
-            lcd.write((byte)1);
-        }
-        else if (customKey == '*')
-        {
-            cursorPositionKeypad1 -= 1;
-            lcd.setCursor(cursorPositionKeypad1, 1);
-            cursorPositionKeypad1 -= 1;
-            lcd.write(" ");
-        }
-        else if (customKey == '#')
-        {
-            lcd.write("=");
-        }
-        else
-        {
-            // simply print the number
-            lcd.print(customKey);
-        }
-
-        // increment cursorPositionKeypad1 in order to print the next digit next to this one
-        cursorPositionKeypad1 += 1;
+    if (keyKeypad1 || keyKeypad2) {
+      Serial.println(number1 + " " + operation + " " + number2);
     }
+    
 }
